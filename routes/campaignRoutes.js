@@ -67,6 +67,95 @@ router.get("/top-funded", async (req, res) => {
   }
 });
 
+router.get("/pending", async (req, res) => {
+  try {
+    const campaignsCollection = getDB().collection("campaigns");
+
+    const campaigns = await campaignsCollection
+      .find({
+        status: "pending",
+      })
+      .sort({
+        createdAt: -1,
+      })
+      .toArray();
+
+    res.status(200).send(campaigns);
+  } catch (error) {
+    console.error("Pending campaigns error:", error);
+
+    res.status(500).send({
+      message: "Failed to fetch pending campaigns",
+    });
+  }
+});
+
+router.patch("/approve/:id", async (req, res) => {
+  try {
+    const campaignsCollection = getDB().collection("campaigns");
+
+    const result = await campaignsCollection.updateOne(
+      {
+        _id: new ObjectId(req.params.id),
+      },
+      {
+        $set: {
+          status: "approved",
+        },
+      }
+    );
+
+    if (result.matchedCount === 0) {
+      return res.status(404).send({
+        message: "Campaign not found",
+      });
+    }
+
+    res.status(200).send({
+      message: "Campaign approved successfully",
+    });
+  } catch (error) {
+    console.error("Approve campaign error:", error);
+
+    res.status(500).send({
+      message: "Failed to approve campaign",
+    });
+  }
+});
+
+router.patch("/reject/:id", async (req, res) => {
+  try {
+    const campaignsCollection = getDB().collection("campaigns");
+
+    const result = await campaignsCollection.updateOne(
+      {
+        _id: new ObjectId(req.params.id),
+      },
+      {
+        $set: {
+          status: "rejected",
+        },
+      }
+    );
+
+    if (result.matchedCount === 0) {
+      return res.status(404).send({
+        message: "Campaign not found",
+      });
+    }
+
+    res.status(200).send({
+      message: "Campaign rejected successfully",
+    });
+  } catch (error) {
+    console.error("Reject campaign error:", error);
+
+    res.status(500).send({
+      message: "Failed to reject campaign",
+    });
+  }
+});
+
 
 router.get("/creator-stats/:email", async (req, res) => {
   try {
