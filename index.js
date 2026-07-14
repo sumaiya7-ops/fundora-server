@@ -7,6 +7,7 @@ const campaignRoutes = require("./routes/campaignRoutes");
 const userRoutes = require("./routes/userRoutes");
 const contributionRoutes = require("./routes/contributionRoutes");
 const withdrawalRoutes = require("./routes/withdrawalRoutes");
+const paymentRoutes = require("./routes/paymentRoutes");
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -20,6 +21,7 @@ app.use("/campaigns", campaignRoutes);
 app.use("/users", userRoutes);
 app.use("/contributions", contributionRoutes);
 app.use("/withdrawals", withdrawalRoutes);
+app.use("/payments", paymentRoutes);
 
 
 app.get("/", (req, res) => {

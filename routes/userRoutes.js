@@ -47,10 +47,14 @@ router.post("/", async (req, res) => {
 router.get("/:email", async (req, res) => {
   try {
     const usersCollection = getDB().collection("users");
-    const email = req.params.email;
+  const email = req.params.email;
 
-    const user = await usersCollection.findOne({ email });
-
+const user = await usersCollection.findOne({
+  email: {
+    $regex: `^${email}$`,
+    $options: "i",
+  },
+});
     if (!user) {
       return res.status(404).send({
         message: "User not found",

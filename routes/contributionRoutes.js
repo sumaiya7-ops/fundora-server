@@ -4,6 +4,60 @@ const { ObjectId } = require("mongodb");
 
 const router = express.Router();
 
+router.post("/", async (req, res) => {
+  try {
+    const contributionsCollection = getDB().collection("contributions");
+    const usersCollection = getDB().collection("users");
+
+    const contribution = req.body;
+
+    const supporter = await usersCollection.findOne({
+      email: contribution.supporter_email,
+    });
+
+    if (!supporter) {
+      return res.status(404).send({
+        message: "Supporter not found",
+      });
+    }
+
+    if (supporter.credits < Number(contribution.contribution_amount)) {
+      return res.status(400).send({
+        message: "Insufficient credits",
+      });
+    }
+
+    await usersCollection.updateOne(
+      { email: contribution.supporter_email },
+      {
+        $inc: {
+          credits: -Number(contribution.contribution_amount),
+        },
+      }
+    );
+
+    const newContribution = {
+      ...contribution,
+      contribution_amount: Number(contribution.contribution_amount),
+      current_date: new Date(),
+      status: "pending",
+    };
+
+    const result = await contributionsCollection.insertOne(newContribution);
+
+    res.status(201).send({
+      message: "Contribution submitted successfully",
+      insertedId: result.insertedId,
+    });
+  } catch (error) {
+    console.error("Create contribution error:", error);
+
+    res.status(500).send({
+      message: "Failed to create contribution",
+    });
+  }
+});
+
 
 router.get("/pending/:creatorEmail", async (req, res) => {
   try {
@@ -142,6 +196,92 @@ router.patch("/reject/:id", async (req, res) => {
 
     res.status(500).send({
       message: "Failed to reject contribution",
+    });
+  }
+});
+
+router.get("/supporter-stats/:email", async (req, res) => {
+  try {
+    const contributionsCollection = getDB().collection("contributions");
+
+    const email = req.params.email;
+
+    const contributions = await contributionsCollection
+      .find({
+        supporter_email: email,
+      })
+      .toArray();
+
+    const totalContributions = contributions.length;
+
+    const pendingContributions = contributions.filter(
+      (contribution) => contribution.status === "pending"
+    ).length;
+
+    const totalAmountContributed = contributions
+      .filter((contribution) => contribution.status === "approved")
+      .reduce(
+        (total, contribution) =>
+          total + Number(contribution.contribution_amount),
+        0
+      );
+
+    res.send({
+      totalContributions,
+      pendingContributions,
+      totalAmountContributed,
+    });
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).send({
+      message: "Failed to fetch supporter stats",
+    });
+  }
+});
+
+router.get("/approved/:email", async (req, res) => {
+  try {
+    const contributionsCollection = getDB().collection("contributions");
+
+    const contributions = await contributionsCollection
+      .find({
+        supporter_email: req.params.email,
+        status: "approved",
+      })
+      .toArray();
+
+    res.status(200).send(contributions);
+  } catch (error) {
+    console.error("Approved contributions error:", error);
+
+    res.status(500).send({
+      message: "Failed to fetch approved contributions",
+    });
+  }
+});
+
+router.get("/supporter/:email", async (req, res) => {
+  try {
+    const contributionsCollection = getDB().collection("contributions");
+
+    const email = req.params.email;
+
+    const contributions = await contributionsCollection
+      .find({
+        supporter_email: email,
+      })
+      .sort({
+        current_date: -1,
+      })
+      .toArray();
+
+    res.status(200).send(contributions);
+  } catch (error) {
+    console.error("Supporter contributions error:", error);
+
+    res.status(500).send({
+      message: "Failed to fetch contributions",
     });
   }
 });

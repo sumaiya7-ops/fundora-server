@@ -284,5 +284,57 @@ router.get("/creator-earnings/:email", async (req, res) => {
   }
 });
 
+router.get("/explore", async (req, res) => {
+  try {
+    const campaignsCollection = getDB().collection("campaigns");
+
+    const today = new Date().toISOString().split("T")[0];
+
+    const campaigns = await campaignsCollection
+      .find({
+        status: "approved",
+        deadline: {
+          $gte: today,
+        },
+      })
+      .sort({
+        created_at: -1,
+      })
+      .toArray();
+
+    res.status(200).send(campaigns);
+  } catch (error) {
+    console.error("Explore campaigns error:", error);
+
+    res.status(500).send({
+      message: "Failed to fetch campaigns",
+    });
+  }
+});
+
+router.get("/:id", async (req, res) => {
+  try {
+    const campaignsCollection = getDB().collection("campaigns");
+
+    const campaign = await campaignsCollection.findOne({
+      _id: new ObjectId(req.params.id),
+    });
+
+    if (!campaign) {
+      return res.status(404).send({
+        message: "Campaign not found",
+      });
+    }
+
+    res.status(200).send(campaign);
+  } catch (error) {
+    console.error("Campaign details error:", error);
+
+    res.status(500).send({
+      message: "Failed to fetch campaign details",
+    });
+  }
+});
+
 
 module.exports = router;
