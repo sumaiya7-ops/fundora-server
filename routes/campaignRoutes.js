@@ -46,7 +46,7 @@ router.get("/", async (req, res) => {
   }
 });
 
-// Get top 6 funded approved campaigns
+
 router.get("/top-funded", async (req, res) => {
   try {
     const campaignsCollection = getDB().collection("campaigns");
