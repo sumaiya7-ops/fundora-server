@@ -302,6 +302,7 @@ router.delete("/:id", async (req, res) => {
     const campaignsCollection = getDB().collection("campaigns");
     const contributionsCollection = getDB().collection("contributions");
     const usersCollection = getDB().collection("users");
+     const reportsCollection = getDB().collection("reports");
 
     const { id } = req.params;
 
@@ -336,6 +337,10 @@ router.delete("/:id", async (req, res) => {
     await contributionsCollection.deleteMany({
       campaign_id: id,
     });
+
+    await reportsCollection.deleteMany({
+  campaign_id: id,
+});
 
     await campaignsCollection.deleteOne({
       _id: new ObjectId(id),
@@ -397,8 +402,8 @@ router.get("/explore", async (req, res) => {
         },
       })
       .sort({
-        created_at: -1,
-      })
+           createdAt: -1,
+           })
       .toArray();
 
     res.status(200).send(campaigns);
