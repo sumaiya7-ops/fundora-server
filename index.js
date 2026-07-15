@@ -4,6 +4,7 @@ require("dotenv").config();
 
 const { connectDB } = require("./config/db");
 const campaignRoutes = require("./routes/campaignRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
 const userRoutes = require("./routes/userRoutes");
 const contributionRoutes = require("./routes/contributionRoutes");
 const withdrawalRoutes = require("./routes/withdrawalRoutes");
@@ -19,6 +20,7 @@ app.use(express.json());
 
 // Routes
 app.use("/campaigns", campaignRoutes);
+app.use("/notifications", notificationRoutes);
 app.use("/users", userRoutes);
 app.use("/contributions", contributionRoutes);
 app.use("/withdrawals", withdrawalRoutes);
