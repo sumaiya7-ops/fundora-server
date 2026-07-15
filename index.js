@@ -2,6 +2,10 @@ const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
 
+const jwt = require("jsonwebtoken");
+const cookieParser = require("cookie-parser");
+
+
 const { connectDB } = require("./config/db");
 const campaignRoutes = require("./routes/campaignRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
@@ -10,6 +14,8 @@ const contributionRoutes = require("./routes/contributionRoutes");
 const withdrawalRoutes = require("./routes/withdrawalRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
 const reportRoutes = require("./routes/reportRoutes");
+const authRoutes = require("./routes/jwtRoutes");
+const jwtRoutes = require("./routes/jwtRoutes");
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -17,6 +23,7 @@ const port = process.env.PORT || 5000;
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use(cookieParser());
 
 // Routes
 app.use("/campaigns", campaignRoutes);
@@ -26,7 +33,8 @@ app.use("/contributions", contributionRoutes);
 app.use("/withdrawals", withdrawalRoutes);
 app.use("/payments", paymentRoutes);
 app.use("/reports", reportRoutes);
-
+app.use("/", jwtRoutes);
+app.use(authRoutes);
 
 app.get("/", (req, res) => {
   res.send("Fundora server is running");

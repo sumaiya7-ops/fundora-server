@@ -2,9 +2,13 @@ const express = require("express");
 const { getDB } = require("../config/db");
 const { ObjectId } = require("mongodb");
 
+const verifyJWT = require("../middlewares/verifyJWT");
+const verifyAdmin = require("../middlewares/verifyAdmin");
+const verifyCreator = require("../middlewares/verifyCreator");
+
 const router = express.Router();
 
-router.post("/", async (req, res) => {
+router.post("/", verifyJWT, verifyCreator, async (req, res) => {
   try {
     const withdrawalsCollection = getDB().collection("withdrawals");
 
@@ -26,7 +30,7 @@ router.post("/", async (req, res) => {
   }
 });
 
-router.get("/pending", async (req, res) => {
+router.get("/pending", verifyJWT, verifyAdmin, async (req, res) => {
   try {
     const withdrawalsCollection = getDB().collection("withdrawals");
 
@@ -47,7 +51,7 @@ router.get("/pending", async (req, res) => {
   }
 });
 
-router.patch("/approve/:id", async (req, res) => {
+router.patch("/approve/:id", verifyJWT, verifyAdmin, async (req, res) => {
   try {
     const withdrawalsCollection = getDB().collection("withdrawals");
     const campaignsCollection = getDB().collection("campaigns");
@@ -106,7 +110,7 @@ router.patch("/approve/:id", async (req, res) => {
   }
 });
 
-router.get("/:email", async (req, res) => {
+router.get("/:email", verifyJWT, verifyCreator, async (req, res) => {
   try {
     const withdrawalsCollection = getDB().collection("withdrawals");
 

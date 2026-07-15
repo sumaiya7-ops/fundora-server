@@ -1,6 +1,8 @@
 const express = require("express");
 const { getDB } = require("../config/db");
 const { ObjectId } = require("mongodb");
+const verifyJWT = require("../middlewares/verifyJWT");
+const verifyAdmin = require("../middlewares/verifyAdmin");
 
 const router = express.Router();
 
@@ -45,7 +47,11 @@ router.post("/", async (req, res) => {
   }
 });
 
-router.get("/admin-stats", async (req, res) => {
+router.get(
+  "/admin-stats",
+  verifyJWT,
+  verifyAdmin,
+  async (req, res) => {
   try {
     const usersCollection = getDB().collection("users");
     const paymentsCollection = getDB().collection("payments");
@@ -84,7 +90,7 @@ router.get("/admin-stats", async (req, res) => {
   }
 });
 
-router.get("/", async (req, res) => {
+router.get("/", verifyJWT, verifyAdmin, async (req, res) => {
   try {
     const usersCollection = getDB().collection("users");
 
@@ -103,7 +109,11 @@ router.get("/", async (req, res) => {
   }
 });
 
-router.patch("/role/:id", async (req, res) => {
+router.patch(
+  "/role/:id",
+  verifyJWT,
+  verifyAdmin,
+  async (req, res) => {
   try {
     const usersCollection = getDB().collection("users");
 
@@ -138,7 +148,11 @@ router.patch("/role/:id", async (req, res) => {
   }
 });
 
-router.delete("/:id", async (req, res) => {
+router.delete(
+  "/:id",
+  verifyJWT,
+  verifyAdmin,
+  async (req, res) => {
   try {
     const usersCollection = getDB().collection("users");
 

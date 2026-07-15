@@ -1,10 +1,13 @@
 const express = require("express");
 const { getDB } = require("../config/db");
 const { ObjectId } = require("mongodb");
+const verifyJWT = require("../middlewares/verifyJWT");
+const verifySupporter = require("../middlewares/verifySupporter");
+const verifyCreator = require("../middlewares/verifyCreator");
 
 const router = express.Router();
 
-router.post("/", async (req, res) => {
+router.post("/", verifyJWT, verifySupporter, async (req, res) => {
   try {
     const contributionsCollection = getDB().collection("contributions");
     const usersCollection = getDB().collection("users");
@@ -67,7 +70,7 @@ router.post("/", async (req, res) => {
 });
 
 
-router.get("/pending/:creatorEmail", async (req, res) => {
+router.get("/pending/:creatorEmail", verifyJWT, verifyCreator, async (req, res) => {
   try {
     const contributionsCollection = getDB().collection("contributions");
 
@@ -90,7 +93,7 @@ router.get("/pending/:creatorEmail", async (req, res) => {
   }
 });
 
-router.patch("/approve/:id", async (req, res) => {
+router.patch("/approve/:id", verifyJWT, verifyCreator, async (req, res) => {
   try {
     const contributionsCollection = getDB().collection("contributions");
     const campaignsCollection = getDB().collection("campaigns");
@@ -157,7 +160,7 @@ router.patch("/approve/:id", async (req, res) => {
   }
 });
 
-router.patch("/reject/:id", async (req, res) => {
+router.patch("/reject/:id", verifyJWT, verifyCreator, async (req, res) => {
   try {
     const contributionsCollection = getDB().collection("contributions");
     const usersCollection = getDB().collection("users");
@@ -224,7 +227,7 @@ router.patch("/reject/:id", async (req, res) => {
   }
 });
 
-router.get("/supporter-stats/:email", async (req, res) => {
+router.get("/supporter-stats/:email", verifyJWT, verifySupporter, async (req, res) => {
   try {
     const contributionsCollection = getDB().collection("contributions");
 
@@ -264,7 +267,7 @@ router.get("/supporter-stats/:email", async (req, res) => {
   }
 });
 
-router.get("/approved/:email", async (req, res) => {
+router.get("/approved/:email", verifyJWT, verifySupporter, async (req, res) => {
   try {
     const contributionsCollection = getDB().collection("contributions");
 
@@ -285,7 +288,7 @@ router.get("/approved/:email", async (req, res) => {
   }
 });
 
-router.get("/supporter/:email", async (req, res) => {
+router.get("/supporter/:email", verifyJWT, verifySupporter, async (req, res) => {
   try {
     const contributionsCollection = getDB().collection("contributions");
 

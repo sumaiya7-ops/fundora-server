@@ -1,6 +1,9 @@
 const express = require("express");
 const { getDB } = require("../config/db");
 const { ObjectId } = require("mongodb");
+const verifyJWT = require("../middlewares/verifyJWT");
+const verifyAdmin = require("../middlewares/verifyAdmin");
+const verifyCreator = require("../middlewares/verifyCreator");
 
 const router = express.Router();
 
@@ -44,7 +47,7 @@ router.get("/top-funded", async (req, res) => {
   }
 });
 
-router.get("/pending", async (req, res) => {
+router.get("/pending", verifyJWT, verifyAdmin, async (req, res) => {
   try {
     const campaignsCollection = getDB().collection("campaigns");
 
@@ -67,7 +70,7 @@ router.get("/pending", async (req, res) => {
   }
 });
 
-router.patch("/approve/:id", async (req, res) => {
+router.patch("/approve/:id", verifyJWT, verifyAdmin, async (req, res) => {
   try {
     const campaignsCollection = getDB().collection("campaigns");
     const notificationsCollection = getDB().collection("notifications");
@@ -112,7 +115,7 @@ router.patch("/approve/:id", async (req, res) => {
   }
 });
 
-router.patch("/reject/:id", async (req, res) => {
+router.patch("/reject/:id", verifyJWT, verifyAdmin, async (req, res) => {
   try {
     const campaignsCollection = getDB().collection("campaigns");
 
@@ -158,7 +161,7 @@ const campaign = await campaignsCollection.findOne({
   }
 });
 
-router.patch("/suspend/:id", async (req, res) => {
+router.patch("/suspend/:id", verifyJWT, verifyAdmin, async (req, res) => {
   try {
     const campaignsCollection = getDB().collection("campaigns");
 
@@ -192,7 +195,10 @@ router.patch("/suspend/:id", async (req, res) => {
 });
 
 
-router.get("/creator-stats/:email", async (req, res) => {
+router.get("/creator-stats/:email", verifyJWT, verifyCreator, async (req, res) => {
+  if (req.params.email !== req.decoded.email) {
+  return res.status(403).send({ message: "Forbidden Access" });
+}
   try {
     const campaignsCollection = getDB().collection("campaigns");
     const email = req.params.email;
@@ -228,7 +234,7 @@ router.get("/creator-stats/:email", async (req, res) => {
   }
 });
 
-router.post("/", async (req, res) => {
+router.post("/", verifyJWT, verifyCreator, async (req, res) => {
   try {
     const campaignsCollection = getDB().collection("campaigns");
 
@@ -244,7 +250,7 @@ router.post("/", async (req, res) => {
       reward_info: campaignData.reward_info,
       campaign_image_url: campaignData.campaign_image_url,
       creator_name: campaignData.creator_name,
-      creator_email: campaignData.creator_email,
+      creator_email: req.decoded.email,
       amount_raised: 0,
       status: "pending",
       createdAt: new Date(),
@@ -265,7 +271,10 @@ router.post("/", async (req, res) => {
   }
 });
 
-router.get("/creator/:email", async (req, res) => {
+router.get("/creator/:email", verifyJWT, verifyCreator, async (req, res) => {
+ if (req.params.email !== req.decoded.email) {
+  return res.status(403).send({ message: "Forbidden Access" });
+} 
   try {
     const campaignsCollection = getDB().collection("campaigns");
 
@@ -290,12 +299,29 @@ router.get("/creator/:email", async (req, res) => {
   }
 });
 
-router.patch("/:id", async (req, res) => {
+router.patch("/:id", verifyJWT, verifyCreator, async (req, res) => {
+
   try {
     const campaignsCollection = getDB().collection("campaigns");
 
     const { id } = req.params;
     const { campaign_title, campaign_story, reward_info } = req.body;
+
+    const campaign = await campaignsCollection.findOne({
+  _id: new ObjectId(id),
+});
+
+if (!campaign) {
+  return res.status(404).send({
+    message: "Campaign not found",
+  });
+}
+
+if (campaign.creator_email !== req.decoded.email) {
+  return res.status(403).send({
+    message: "Forbidden Access",
+  });
+}
 
     const result = await campaignsCollection.updateOne(
       { _id: new ObjectId(id) },
@@ -322,7 +348,7 @@ router.patch("/:id", async (req, res) => {
 });
 
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", verifyJWT, verifyCreator, async (req, res) => {
   try {
     const campaignsCollection = getDB().collection("campaigns");
     const contributionsCollection = getDB().collection("contributions");
@@ -340,6 +366,11 @@ router.delete("/:id", async (req, res) => {
         message: "Campaign not found",
       });
     }
+    if (campaign.creator_email !== req.decoded.email) {
+  return res.status(403).send({
+    message: "Forbidden Access",
+  });
+}
 
     const approvedContributions = await contributionsCollection
       .find({
@@ -383,7 +414,10 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
-router.get("/creator-earnings/:email", async (req, res) => {
+router.get("/creator-earnings/:email", verifyJWT, verifyCreator, async (req, res) => {
+  if (req.params.email !== req.decoded.email) {
+  return res.status(403).send({ message: "Forbidden Access" });
+}
   try {
     const campaignsCollection = getDB().collection("campaigns");
 
