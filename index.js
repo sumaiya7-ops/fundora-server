@@ -8,6 +8,7 @@ const userRoutes = require("./routes/userRoutes");
 const contributionRoutes = require("./routes/contributionRoutes");
 const withdrawalRoutes = require("./routes/withdrawalRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
+const reportRoutes = require("./routes/reportRoutes");
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -22,6 +23,7 @@ app.use("/users", userRoutes);
 app.use("/contributions", contributionRoutes);
 app.use("/withdrawals", withdrawalRoutes);
 app.use("/payments", paymentRoutes);
+app.use("/reports", reportRoutes);
 
 
 app.get("/", (req, res) => {

@@ -5,29 +5,6 @@ const { ObjectId } = require("mongodb");
 const router = express.Router();
 
 
-// Add a new campaign
-router.post("/", async (req, res) => {
-  try {
-    const campaignsCollection = getDB().collection("campaigns");
-
-    const campaign = {
-      ...req.body,
-      amount_raised: 0,
-      status: "pending",
-      created_at: new Date(),
-    };
-
-    const result = await campaignsCollection.insertOne(campaign);
-
-    res.status(201).send(result);
-  } catch (error) {
-    console.error("Add campaign error:", error);
-
-    res.status(500).send({
-      message: "Failed to add campaign",
-    });
-  }
-});
 
 // Get all campaigns
 router.get("/", async (req, res) => {
