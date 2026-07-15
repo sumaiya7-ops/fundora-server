@@ -137,7 +137,7 @@ router.patch("/approve/:id", async (req, res) => {
         },
       }
     );
-    
+
     await notificationsCollection.insertOne({
   message: `Your contribution of ${contribution.contribution_amount} credits to "${contribution.campaign_title}" was approved by ${contribution.creator_name}.`,
   toEmail: contribution.supporter_email,
@@ -161,6 +161,7 @@ router.patch("/reject/:id", async (req, res) => {
   try {
     const contributionsCollection = getDB().collection("contributions");
     const usersCollection = getDB().collection("users");
+     const notificationsCollection = getDB().collection("notifications");
 
     const id = req.params.id;
 
@@ -203,6 +204,13 @@ router.patch("/reject/:id", async (req, res) => {
         },
       }
     );
+
+    await notificationsCollection.insertOne({
+  message: `Your contribution of ${contribution.contribution_amount} credits to "${contribution.campaign_title}" was rejected by ${contribution.creator_name}.`,
+  toEmail: contribution.supporter_email,
+  actionRoute: "/dashboard/my-contributions",
+  time: new Date(),
+});
 
     res.status(200).send({
       message: "Contribution rejected and credits refunded successfully",
