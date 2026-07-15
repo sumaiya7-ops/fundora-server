@@ -8,6 +8,7 @@ router.post("/", async (req, res) => {
   try {
     const contributionsCollection = getDB().collection("contributions");
     const usersCollection = getDB().collection("users");
+    const notificationsCollection = getDB().collection("notifications");
 
     const contribution = req.body;
 
@@ -44,6 +45,13 @@ router.post("/", async (req, res) => {
     };
 
     const result = await contributionsCollection.insertOne(newContribution);
+
+    await notificationsCollection.insertOne({
+  message: `${contribution.supporter_name} contributed ${contribution.contribution_amount} credits to your campaign "${contribution.campaign_title}"`,
+  toEmail: contribution.creator_email,
+  actionRoute: "/dashboard",
+  time: new Date(),
+});
 
     res.status(201).send({
       message: "Contribution submitted successfully",
