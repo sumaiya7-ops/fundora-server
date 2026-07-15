@@ -133,6 +133,39 @@ router.patch("/reject/:id", async (req, res) => {
   }
 });
 
+router.patch("/suspend/:id", async (req, res) => {
+  try {
+    const campaignsCollection = getDB().collection("campaigns");
+
+    const result = await campaignsCollection.updateOne(
+      {
+        _id: new ObjectId(req.params.id),
+      },
+      {
+        $set: {
+          status: "suspended",
+        },
+      }
+    );
+
+    if (result.matchedCount === 0) {
+      return res.status(404).send({
+        message: "Campaign not found",
+      });
+    }
+
+    res.status(200).send({
+      message: "Campaign suspended successfully",
+    });
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).send({
+      message: "Failed to suspend campaign",
+    });
+  }
+});
+
 
 router.get("/creator-stats/:email", async (req, res) => {
   try {
