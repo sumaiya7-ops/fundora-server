@@ -10,7 +10,7 @@ const router = express.Router();
 router.get("/", async (req, res) => {
   try {
     const campaignsCollection = getDB().collection("campaigns");
-
+    
     const campaigns = await campaignsCollection.find().toArray();
 
     res.send(campaigns);
@@ -70,6 +70,11 @@ router.get("/pending", async (req, res) => {
 router.patch("/approve/:id", async (req, res) => {
   try {
     const campaignsCollection = getDB().collection("campaigns");
+    const notificationsCollection = getDB().collection("notifications");
+
+    const campaign = await campaignsCollection.findOne({
+  _id: new ObjectId(req.params.id),
+});
 
     const result = await campaignsCollection.updateOne(
       {
@@ -88,6 +93,13 @@ router.patch("/approve/:id", async (req, res) => {
       });
     }
 
+    await notificationsCollection.insertOne({
+  message: `Your campaign "${campaign.campaign_title}" has been approved.`,
+  toEmail: campaign.creator_email,
+  actionRoute: "/dashboard/my-campaigns",
+  time: new Date(),
+});
+
     res.status(200).send({
       message: "Campaign approved successfully",
     });
@@ -103,6 +115,12 @@ router.patch("/approve/:id", async (req, res) => {
 router.patch("/reject/:id", async (req, res) => {
   try {
     const campaignsCollection = getDB().collection("campaigns");
+
+    const notificationsCollection = getDB().collection("notifications");
+
+const campaign = await campaignsCollection.findOne({
+  _id: new ObjectId(req.params.id),
+});
 
     const result = await campaignsCollection.updateOne(
       {
@@ -120,6 +138,13 @@ router.patch("/reject/:id", async (req, res) => {
         message: "Campaign not found",
       });
     }
+
+    await notificationsCollection.insertOne({
+  message: `Your campaign "${campaign.campaign_title}" has been rejected.`,
+  toEmail: campaign.creator_email,
+  actionRoute: "/dashboard/my-campaigns",
+  time: new Date(),
+});
 
     res.status(200).send({
       message: "Campaign rejected successfully",

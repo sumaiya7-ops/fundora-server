@@ -51,6 +51,7 @@ router.patch("/approve/:id", async (req, res) => {
   try {
     const withdrawalsCollection = getDB().collection("withdrawals");
     const campaignsCollection = getDB().collection("campaigns");
+    const notificationsCollection = getDB().collection("notifications");
 
    
     const withdrawal = await withdrawalsCollection.findOne({
@@ -85,6 +86,13 @@ router.patch("/approve/:id", async (req, res) => {
         },
       }
     );
+
+    await notificationsCollection.insertOne({
+  message: `Your withdrawal request for ${withdrawal.withdrawal_credit} credits has been approved.`,
+  toEmail: withdrawal.creator_email,
+  actionRoute: "/dashboard/withdrawals",
+  time: new Date(),
+});
 
     res.status(200).send({
       message: "Payment completed successfully",
